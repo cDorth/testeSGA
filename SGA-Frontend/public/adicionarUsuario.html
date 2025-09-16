@@ -46,7 +46,7 @@
 
         <div class="input-container" id="conjusenha">
             <img src="imglogineusuario/senha.svg" alt="Ícone" class="input-icon">
-            <input type="text" id="senha" placeholder="Crie uma Senha" class="custom-input" required>
+            <input type="password" id="senha" placeholder="Crie uma Senha" class="custom-input" required>
         </div>
         <br><br>
 
@@ -107,13 +107,30 @@
             };
 
             try {
-                const response = await fetch('http://localhost:3000/adicionar-usuario', {
+                // Obter token de autenticação
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    alert('Erro: Você precisa estar logado como professor para adicionar usuários.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                const response = await fetch('http://localhost:8000/adicionar-usuario', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify(usuario)
                 });
-                const message = await response.text();
-                alert(message);
+                const data = await response.json();
+                if (data.success) {
+                    alert(data.message);
+                    // Limpar o formulário após sucesso
+                    document.getElementById('usuarioForm').reset();
+                } else {
+                    alert('Erro: ' + (data.detail || 'Erro desconhecido'));
+                }
             } catch (error) {
                 alert('Erro ao enviar dados: ' + error.message);
             }

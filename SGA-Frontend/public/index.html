@@ -64,8 +64,11 @@
             const data = await response.json();
 
             if (response.ok && data.success) {
+                // Armazenar dados do usuário e token JWT
                 localStorage.setItem('usuario_email', data.usuario.email);
                 localStorage.setItem('usuario_tipo', data.usuario.tipo);
+                localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
 
                 if (data.usuario.tipo === 'professor') {
                     window.location.href = "telaInicial-Professor.html";
