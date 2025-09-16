@@ -22,3 +22,5 @@ typing_extensions==4.14.1
 uvicorn==0.35.0
 watchfiles==1.1.0
 websockets==15.0.1
+email-validator==2.2.0
+python-multipart==0.0.6

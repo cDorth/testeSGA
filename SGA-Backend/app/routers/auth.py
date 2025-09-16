@@ -23,22 +23,44 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     email = request.email
     senha = request.senha
 
-    # Primeiro tenta encontrar na DimUsuario
-    result_user = await db.execute(select(DimUsuario).where(DimUsuario.email == email))
-    usuario = result_user.scalars().first()
+    # Verificar se é professor (email contém @professor.com)
+    if "@professor.com" in email:
+        result_prof = await db.execute(select(DimProfessor).where(DimProfessor.email == email))
+        professor = result_prof.scalars().first()
+        
+        if not professor or not bcrypt.verify(senha, professor.senha):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
+        
+        return {
+            "success": True,
+            "usuario": {
+                "email": professor.email,
+                "nome": professor.nome,
+                "tipo": "professor",
+                "sn": professor.sn
+            }
+        }
+    else:
+        # Verificar na tabela de usuários (alunos)
+        result_user = await db.execute(select(DimUsuario).where(DimUsuario.email == email))
+        usuario = result_user.scalars().first()
 
-    if not usuario or not bcrypt.verify(senha, usuario.senha):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
+        if not usuario or not bcrypt.verify(senha, usuario.senha):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
 
-    return LoginResponse(
-        idusuario=usuario.idusuario,
-        nome=usuario.nome,
-        email=usuario.email
-    )
+        return {
+            "success": True,
+            "usuario": {
+                "email": usuario.email,
+                "nome": usuario.nome,
+                "tipo": "aluno",
+                "idusuario": usuario.idusuario
+            }
+        }
 
 
-@router.post("/register", response_model=LoginResponse)
-async def register_user(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
+@router.post("/adicionar-usuario")
+async def adicionar_usuario(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     # 1. Verificar se o e-mail já existe
     query = select(DimUsuario).where(DimUsuario.email == data.email)
     result = await db.execute(query)
@@ -61,8 +83,12 @@ async def register_user(data: RegisterRequest, db: AsyncSession = Depends(get_db
     await db.commit()
     await db.refresh(new_user)
 
-    return LoginResponse(
-        idusuario=new_user.idusuario,
-        nome=new_user.nome,
-        email=new_user.email
-    )
+    return {
+        "success": True,
+        "message": "Usuario adicionado com sucesso!",
+        "usuario": {
+            "idusuario": new_user.idusuario,
+            "nome": new_user.nome,
+            "email": new_user.email
+        }
+    }
