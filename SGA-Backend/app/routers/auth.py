@@ -27,13 +27,13 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     result_user = await db.execute(select(DimUsuario).where(DimUsuario.email == email))
     usuario = result_user.scalars().first()
 
-    if not user or not bcrypt.verify(data.senha, user.senha):
+    if not usuario or not bcrypt.verify(senha, usuario.senha):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
 
     return LoginResponse(
-        idusuario=user.idusuario,
-        nome=user.nome,
-        email=user.email
+        idusuario=usuario.idusuario,
+        nome=usuario.nome,
+        email=usuario.email
     )
 
 
