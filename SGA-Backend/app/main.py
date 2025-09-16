@@ -1,10 +1,14 @@
 from fastapi import FastAPI
+from dotenv import load_dotenv
 from app.core.database import engine, Base
 from app.routers import auth, recebimentos, saidas, saldos
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import produtos
 from app.routers import estoque
 from app.routers import chart
+
+# Carregar variáveis de ambiente
+load_dotenv()
 
 
 app = FastAPI()

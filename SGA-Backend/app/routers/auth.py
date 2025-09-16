@@ -20,7 +20,9 @@ security = HTTPBearer()
 
 # JWT Configuration
 import os
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fallback-key-for-dev")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("JWT_SECRET_KEY não encontrada nas variáveis de ambiente")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
